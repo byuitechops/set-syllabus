@@ -1,15 +1,14 @@
 {
-  "name": "learning",
-  "version": "1.0.0",
-  "description": "",
-  "main": "syllabus.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "canvas-wrapper": "git+https://github.com/byuitechops/Canvas-wrapper.git",
-    "request": "^2.83.0"
-  }
+    "name": "set-syllabus",
+    "version": "1.0.0",
+    "description": "",
+    "main": "syllabus.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "canvas-wrapper": "git+https://github.com/byuitechops/Canvas-wrapper.git"
+    }
 }
