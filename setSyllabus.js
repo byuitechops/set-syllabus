@@ -139,6 +139,6 @@ module.exports = function (course, stepCallback) {
         deleteSyllabusItem
         ],
         function (err, result) {
-            stepCallback(null, result);
+            stepCallback(null, course);
         });
 }
