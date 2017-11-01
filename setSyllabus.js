@@ -5,15 +5,21 @@
 var canvas = require('canvas-wrapper'),
     async = require('async');
 
-module.exports = function (course, mainCallback) {
+module.exports = function (course, stepCallback) {
+    course.addModuleReport('setSyllabus');
 
     // #1 -- get modules
     function getModules(getModulesCallback) {
         canvas.get(`/api/v1/courses/${course.info.canvasOU}/modules`, (err, modules) => {
             if (err) {
+                course.throwErr('setSyllabus', err);
                 getModulesCallback(err);
                 return;
             }
+            course.success(
+                'setSyllabus',
+                `Retrieved the modules for the ${course.info.canvasOU} course`
+            );
             getModulesCallback(null, modules);
         });
     }
@@ -22,9 +28,14 @@ module.exports = function (course, mainCallback) {
     function getModuleItems(module, getModuleItemsCallback) {
         canvas.get(`/api/v1/courses/${course.info.canvasOU}/modules/${module.id}/items`, function (err, moduleItems) {
             if (err) {
+                course.throwErr('setSyllabus', err);
                 getModuleItemsCallback(err);
                 return;
             }
+            course.success(
+                'setSyllabus',
+                `Retrieved the items for the ${module.id} module`
+            );
             getModuleItemsCallback(null, moduleItems);
         });
     }
@@ -33,9 +44,14 @@ module.exports = function (course, mainCallback) {
     function getAllItems(modules, getItemsCallback) {
         async.map(modules, getModuleItems, function (err, allItems) {
             if (err) {
+                course.throwErr('setSyllabus', err);
                 getItemsCallback(err);
                 return;
             }
+            course.success(
+                'setSyllabus',
+                `Retrieved the items for all modules for the ${course.info.canvasOU} course`
+            );
             getItemsCallback(null, allItems);
         });
     }
@@ -64,20 +80,29 @@ module.exports = function (course, mainCallback) {
                 }
             });
         });
+        course.success(
+            'setSyllabus',
+            'Syllabus has been found and the data is stored in an object'
+        );
         findSyllabusCallback(null, sI);
     }
 
     // #4 -- process the syllabus if found or just return not found
     function putSyllabus(sI, putSyllabusCallback) {
         if (sI.courseId !== '') {
-            var iframe = `<iframe src="${sI.syllabusUrl}" width="100%" height="100%">Loading...</iframe>`;
+            var iframe = `<iframe src="${sI.syllabusUrl}" width="100%" height="800px">Loading...</iframe>`;
             canvas.put(`/api/v1/courses/${sI.courseId}`, {
                 'course[syllabus_body]': iframe,
             }, function (err) {
                 if (err) {
+                    course.throwErr('setSyllabus', err);
                     putSyllabusCallback(err);
                     return;
                 }
+                course.success(
+                    'setSyllabus',
+                    'Successfully set the Syllabus content in the Syllabus tool'
+                );
                 putSyllabusCallback(null, sI);
             });
         } else {
@@ -91,11 +116,16 @@ module.exports = function (course, mainCallback) {
             deleteSyllabusItemCallback(null, 'syllabus not found');
         } else {
             var itemToDelete = `/api/v1/courses/${sI.courseId}/modules/${sI.moduleId}/items/${sI.syllabusId}`;
-            canvas.delete(itemToDelete, function (err1) {
-                if (err1) {
-                    deleteSyllabusItemCallback(err1);
+            canvas.delete(itemToDelete, function (err) {
+                if (err) {
+                    course.throwErr('setSyllabus', err);
+                    deleteSyllabusItemCallback(err);
                     return;
                 }
+                course.success(
+                    'setSyllabus',
+                    'Syllabus has been deleted from the modules'
+                );
                 deleteSyllabusItemCallback(null, 'done');
             });
         }
@@ -109,6 +139,6 @@ module.exports = function (course, mainCallback) {
         deleteSyllabusItem
         ],
         function (err, result) {
-            mainCallback(null, result);
+            stepCallback(null, result);
         });
 }
