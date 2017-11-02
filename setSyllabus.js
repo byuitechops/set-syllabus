@@ -18,7 +18,7 @@ module.exports = function (course, stepCallback) {
             }
             course.success(
                 'setSyllabus',
-                `Retrieved the modules for the ${course.info.canvasOU} course`
+                `Retrieved the modules for the "${course.info.name}" course (canvasOU: ${course.info.canvasOU})`
             );
             getModulesCallback(null, modules);
         });
@@ -34,7 +34,7 @@ module.exports = function (course, stepCallback) {
             }
             course.success(
                 'setSyllabus',
-                `Retrieved the items for the ${module.id} module`
+                `Retrieved the items for the ${module.name} module (id: ${module.id})`
             );
             getModuleItemsCallback(null, moduleItems);
         });
@@ -50,7 +50,7 @@ module.exports = function (course, stepCallback) {
             }
             course.success(
                 'setSyllabus',
-                `Retrieved the items for all modules for the ${course.info.canvasOU} course`
+                `Retrieved all items for all modules for the "${course.info.name}" course (canvasOU: ${course.info.canvasOU})`
             );
             getItemsCallback(null, allItems);
         });

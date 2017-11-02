@@ -5,7 +5,7 @@
 // this is the url for testing
 // https://byui.brightspace.com/d2l/le/content/329551/viewContent/4730294/View
 
-var modules = require('./module1.js');
+var modules = require('./setSyllabus1.js');
 
 var course = {
     info: {
