@@ -89,7 +89,7 @@ module.exports = function (course, stepCallback) {
 
     // #4 -- process the syllabus if found or just return not found
     function putSyllabus(sI, putSyllabusCallback) {
-        if (sI.courseId !== '') {
+        if ((sI.courseId !== '') && (sI.syllabusUrl !== undefined)) {
             var iframe = `<iframe src="${sI.syllabusUrl}" width="100%" height="800px">Loading...</iframe>`;
             canvas.put(`/api/v1/courses/${sI.courseId}`, {
                 'course[syllabus_body]': iframe,
@@ -106,6 +106,7 @@ module.exports = function (course, stepCallback) {
                 putSyllabusCallback(null, sI);
             });
         } else {
+            course.throwErr('setSyllabus', 'syllabus not found');
             putSyllabusCallback(null, 'syllabus not found');
         }
     }
