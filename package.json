@@ -12,5 +12,6 @@
         "async": "^2.5.0",
         "async-waterfall": "^0.1.5",
         "canvas-wrapper": "git+https://github.com/byuitechops/Canvas-wrapper.git"
-    }
+    },
+    "childType": "postImport"
 }
