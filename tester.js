@@ -9,7 +9,7 @@ var modules = require('./setSyllabus1.js');
 
 var course = {
     info: {
-        canvasOU: '375'
+        canvasOU: '375' //'874' 
     }
 }
 
