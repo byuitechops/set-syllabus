@@ -31,7 +31,7 @@ module.exports = (course, stepCallback) => {
             }
             // due to async nature of the programm, sometimes it may need some
             // time delay before it starts getting the modules
-            // the if {...} hangles that issue
+            // the if {...} handles that issue
             if (modules.length === 0) {
                 course.throwWarning(
                     'set-syllabus',
@@ -131,7 +131,7 @@ module.exports = (course, stepCallback) => {
         // DEFINE the steps of the conditional sequence
         // a) - this handels the case when the syllabus is implemented as the external url
         function a() {
-            var iframe = `<iframe src="${sI.syllabusUrl}" width="100%" height="800px">Loading...</iframe>`;
+            var iframe = `<iframe src="${sI.syllabusUrl}" width="100%" height="400">Loading...</iframe>`;
             canvas.put(`/api/v1/courses/${sI.courseId}`, {
                 'course[syllabus_body]': iframe
             }, function (err) {
