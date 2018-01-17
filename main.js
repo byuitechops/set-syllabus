@@ -1,6 +1,6 @@
 /*eslint-env node, es6*/
 /*eslint no-unused-vars:1*/
-/*eslint no-console:0*/
+/*eslint no-console:0, semi: 2*/
 
 /* If the courser syllabus is among modules, the step finds it 
    and rellocates it into the Sullabus folder of the course
@@ -10,7 +10,8 @@
 
 /* Include this line only if you are going to use Canvas API */
 const canvas = require('canvas-wrapper'),
-    async = require('async');
+    async = require('async'),
+    https = require('https');
 
 /* View available course object functions */
 // https://github.com/byuitechops/d2l-to-canvas-conversion-tool/blob/master/documentation/classFunctions.md
@@ -38,7 +39,7 @@ module.exports = (course, stepCallback) => {
                     `Course modules have not loaded yet for the "${courseName}" course (canvasOU: ${course.info.canvasOU}). Trying again.`
                 );
                 setTimeout(function () {
-                    getModules(getModulesCallback)
+                    getModules(getModulesCallback);
                 }, 1000);
                 return;
             }
@@ -94,7 +95,7 @@ module.exports = (course, stepCallback) => {
             // for b) case
             type: '',
             url: ''
-        }
+        };
         allItems.forEach(function (module) {
             module.forEach(function (item) {
                 var title = item.title.toLowerCase();
@@ -129,25 +130,43 @@ module.exports = (course, stepCallback) => {
     // #4 -- process the syllabus if found or return 'syllabus not found' if not
     function putSyllabus(sI, putSyllabusCallback) {
         // DEFINE the steps of the conditional sequence
-        // a) - this handels the case when the syllabus is implemented as the external url
-        function a() {
-            var iframe = `<iframe src="${sI.syllabusUrl}" width="100%" height="400">Loading...</iframe>`;
-            canvas.put(`/api/v1/courses/${sI.courseId}`, {
-                'course[syllabus_body]': iframe
-            }, function (err) {
-                if (err) {
-                    course.throwErr('set-syllabus', err);
-                    putSyllabusCallback(err);
-                    return;
-                }
-                course.success(
-                    'set-syllabus',
-                    'Successfully set the Syllabus content in the Syllabus tool'
-                );
-                putSyllabusCallback(null, sI);
+        // a_a) - this function will get the content that will be used in a()
+        function getHTML(getHTMLcallback) {
+            // this gets the html for using it in a() to put the syllabus
+            https.get(`${sI.syllabusUrl}`, (res) => {
+                var html = "";
+                res.on('data', function (d) {
+                    html += d.toString('utf8');
+                });
+                res.on('end', function () {
+                    getHTMLcallback(html);
+                });
+            }).on('error', (err) => {
+                course.throwErr('set-syllabus', err);
+                putSyllabusCallback(err);
             });
         }
-        // b) - this else if will handle the case when the syllabus is implemented as the html page
+        // a) - this handels the case when the syllabus is implemented as the external html page
+        function a() {
+            getHTML(function (html) {
+                canvas.put(`/api/v1/courses/${sI.courseId}`, {
+                    'course[syllabus_body]': html
+                }, function (err) {
+                    if (err) {
+                        course.throwErr('set-syllabus', err);
+                        putSyllabusCallback(err);
+                        return;
+                    }
+                    course.success(
+                        'set-syllabus',
+                        'Successfully set the Syllabus content in the Syllabus tool'
+                    );
+                    putSyllabusCallback(null, sI);
+                });
+            });
+
+        }
+        // b) - this else if will handle the case when the syllabus is implemented as the internal html page
         function b() {
             var object_url = sI.url;
             // to do this part use canvas.get and nest in it canvas.put 
