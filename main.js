@@ -1,32 +1,22 @@
 /*eslint-env node, es6*/
-/*eslint no-unused-vars:1*/
-/*eslint no-console:0, semi: 2*/
 
 /* If the courser syllabus is among modules, the step finds it 
    and rellocates it into the Sullabus folder of the course
    (it handles both, the url and the html cases for the syllabus */
 
 /* Put dependencies here */
-
-/* Include this line only if you are going to use Canvas API */
 const canvas = require('canvas-wrapper'),
-    async = require('async'),
+    asyncLib = require('async'),
     https = require('https');
 
-/* View available course object functions */
-// https://github.com/byuitechops/d2l-to-canvas-conversion-tool/blob/master/documentation/classFunctions.md
-
 module.exports = (course, stepCallback) => {
-    /* Create the module report so that we can access it later as needed.
-    This MUST be done at the beginning of each child module. */
-    course.addModuleReport('set-syllabus');
 
     var courseName = course.info.fileName.split('.zip')[0];
     // #1 -- get modules
     function getModules(getModulesCallback) {
         canvas.get(`/api/v1/courses/${course.info.canvasOU}/modules`, function (err, modules) {
             if (err) {
-                course.throwErr('set-syllabus', err);
+                course.error(err);
                 getModulesCallback(err);
                 return;
             }
@@ -34,19 +24,11 @@ module.exports = (course, stepCallback) => {
             // time delay before it starts getting the modules
             // the if {...} handles that issue
             if (modules.length === 0) {
-                course.throwWarning(
-                    'set-syllabus',
-                    `Course modules have not loaded yet for the "${courseName}" course (canvasOU: ${course.info.canvasOU}). Trying again.`
-                );
-                setTimeout(function () {
-                    getModules(getModulesCallback);
-                }, 1000);
+                course.warning(`Course modules have not loaded yet for the "${courseName}" course (canvasOU: ${course.info.canvasOU}). Trying again.`);
+                getModules(getModulesCallback);
                 return;
             }
-            course.success(
-                'set-syllabus',
-                `Retrieved the modules for the "${courseName}" course (canvasOU: ${course.info.canvasOU})`
-            );
+            course.message(`Retrieved the modules for the "${courseName}" course (canvasOU: ${course.info.canvasOU})`);
             getModulesCallback(null, modules);
         });
     }
@@ -55,30 +37,24 @@ module.exports = (course, stepCallback) => {
     function getModuleItems(module, getModuleItemsCallback) {
         canvas.get(`/api/v1/courses/${course.info.canvasOU}/modules/${module.id}/items`, function (err, moduleItems) {
             if (err) {
-                course.throwErr('set-syllabus', err);
+                course.error(err);
                 getModuleItemsCallback(err);
                 return;
             }
-            course.success(
-                'set-syllabus',
-                `Retrieved the items for the ${module.name} module (id: ${module.id})`
-            );
+            course.message(`Retrieved the items for the ${module.name} module (id: ${module.id})`);
             getModuleItemsCallback(null, moduleItems);
         });
     }
 
     // #2 -- get all items 
     function getAllItems(modules, getItemsCallback) {
-        async.map(modules, getModuleItems, function (err, allItems) {
+        asyncLib.map(modules, getModuleItems, function (err, allItems) {
             if (err) {
-                course.throwErr('set-syllabus', err);
+                course.error(err);
                 getItemsCallback(err);
                 return;
             }
-            course.success(
-                'set-syllabus',
-                `Retrieved all items for all modules for the "${courseName}" course (canvasOU: ${course.info.canvasOU})`
-            );
+            course.message('Retrieved all items for all modules');
             getItemsCallback(null, allItems);
         });
     }
@@ -120,10 +96,7 @@ module.exports = (course, stepCallback) => {
                 }
             });
         });
-        course.success(
-            'set-syllabus',
-            'Syllabus has been found and the data is stored in an object'
-        );
+        course.message('Syllabus has been found and the data is stored in an object');
         findSyllabusCallback(null, sI);
     }
 
@@ -134,7 +107,7 @@ module.exports = (course, stepCallback) => {
         function getHTML(getHTMLcallback) {
             // this gets the html for using it in a() to put the syllabus
             https.get(`${sI.syllabusUrl}`, (res) => {
-                var html = "";
+                var html = '';
                 res.on('data', function (d) {
                     html += d.toString('utf8');
                 });
@@ -142,7 +115,7 @@ module.exports = (course, stepCallback) => {
                     getHTMLcallback(html);
                 });
             }).on('error', (err) => {
-                course.throwErr('set-syllabus', err);
+                course.error(err);
                 putSyllabusCallback(err);
             });
         }
@@ -153,14 +126,11 @@ module.exports = (course, stepCallback) => {
                     'course[syllabus_body]': html
                 }, function (err) {
                     if (err) {
-                        course.throwErr('set-syllabus', err);
+                        course.error(err);
                         putSyllabusCallback(err);
                         return;
                     }
-                    course.success(
-                        'set-syllabus',
-                        'Successfully set the Syllabus content in the Syllabus tool'
-                    );
+                    course.message('Successfully set the Syllabus content in the Syllabus tool');
                     putSyllabusCallback(null, sI);
                 });
             });
@@ -173,7 +143,7 @@ module.exports = (course, stepCallback) => {
             // for the value of the "body":"...." from the object_url
             canvas.get(object_url, function (err, array) {
                 if (err) {
-                    course.throwErr('set-syllabus', err);
+                    course.error(err);
                     putSyllabusCallback(err);
                     return;
                 }
@@ -194,22 +164,19 @@ module.exports = (course, stepCallback) => {
                     'course[syllabus_body]': html
                 }, function (err) {
                     if (err) {
-                        course.throwErr('set-syllabus', err);
+                        course.error(err);
                         putSyllabusCallback(err);
                         return;
                     }
-                    course.success(
-                        'set-syllabus',
-                        'Successfully set the Syllabus content in the Syllabus tool'
-                    );
+                    course.message('Successfully set the Syllabus content in the Syllabus tool');
                     putSyllabusCallback(null, sI);
                 });
             });
         }
         // c) - this will handle the case when there is no syllabus
         function c() {
-            course.throwErr('set-syllabus', 'syllabus not found');
-            putSyllabusCallback(null, 'syllabus not found');
+            course.wraning('Syllabus not found');
+            putSyllabusCallback(null, 'Syllabus not found');
         }
 
         // CALL the steps of the conditional sequence
@@ -230,27 +197,24 @@ module.exports = (course, stepCallback) => {
             var itemToDelete = `/api/v1/courses/${sI.courseId}/modules/${sI.moduleId}/items/${sI.syllabusId}`;
             canvas.delete(itemToDelete, function (err) {
                 if (err) {
-                    course.throwErr('set-syllabus', err);
+                    course.error(err);
                     deleteSyllabusItemCallback(err);
                     return;
                 }
-                course.success(
-                    'set-syllabus',
-                    'Syllabus has been deleted from the modules'
-                );
+                course.message('Syllabus has been deleted from the modules');
                 deleteSyllabusItemCallback(null, 'done');
             });
         }
     }
 
-    async.waterfall([
+    asyncLib.waterfall([
         getModules,
         getAllItems,
         findSyllabus,
         putSyllabus,
         deleteSyllabusItem
-        ],
-        function () {
-            stepCallback(null, course);
-        });
+    ],
+    function () {
+        stepCallback(null, course);
+    });
 };
