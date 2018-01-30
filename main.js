@@ -26,7 +26,7 @@ module.exports = (course, stepCallback) => {
     function getModules(getModulesCallback) {
         canvas.get(`/api/v1/courses/${course.info.canvasOU}/modules`, function (err, modules) {
             if (err) {
-                course.throwErr('set-syllabus', err);
+                course.error(err);
                 getModulesCallback(err);
                 return;
             }
@@ -34,8 +34,7 @@ module.exports = (course, stepCallback) => {
             // time delay before it starts getting the modules
             // the if {...} handles that issue
             if (modules.length === 0) {
-                course.throwWarning(
-                    'set-syllabus',
+                course.warning(
                     `Course modules have not loaded yet for the "${courseName}" course (canvasOU: ${course.info.canvasOU}). Trying again.`
                 );
                 setTimeout(function () {
@@ -43,10 +42,9 @@ module.exports = (course, stepCallback) => {
                 }, 1000);
                 return;
             }
-            course.success(
-                'set-syllabus',
-                `Retrieved the modules for the "${courseName}" course (canvasOU: ${course.info.canvasOU})`
-            );
+            course.log('Syllabus', {
+                'Message': `Retrieved the modules for the "${courseName}" course (canvasOU: ${course.info.canvasOU})`
+            });
             getModulesCallback(null, modules);
         });
     }
@@ -55,14 +53,13 @@ module.exports = (course, stepCallback) => {
     function getModuleItems(module, getModuleItemsCallback) {
         canvas.get(`/api/v1/courses/${course.info.canvasOU}/modules/${module.id}/items`, function (err, moduleItems) {
             if (err) {
-                course.throwErr('set-syllabus', err);
+                course.error(err);
                 getModuleItemsCallback(err);
                 return;
             }
-            course.success(
-                'set-syllabus',
-                `Retrieved the items for the ${module.name} module (id: ${module.id})`
-            );
+            course.log('Syllabus', {
+                'Message': `Retrieved the items for the ${module.name} module (id: ${module.id})`
+            });
             getModuleItemsCallback(null, moduleItems);
         });
     }
@@ -71,14 +68,13 @@ module.exports = (course, stepCallback) => {
     function getAllItems(modules, getItemsCallback) {
         async.map(modules, getModuleItems, function (err, allItems) {
             if (err) {
-                course.throwErr('set-syllabus', err);
+                course.error(err);
                 getItemsCallback(err);
                 return;
             }
-            course.success(
-                'set-syllabus',
-                `Retrieved all items for all modules for the "${courseName}" course (canvasOU: ${course.info.canvasOU})`
-            );
+            course.log('Syllabus', {
+                'Message': `Retrieved all items for all modules for the "${courseName}" course (canvasOU: ${course.info.canvasOU})`
+            });
             getItemsCallback(null, allItems);
         });
     }
@@ -120,10 +116,9 @@ module.exports = (course, stepCallback) => {
                 }
             });
         });
-        course.success(
-            'set-syllabus',
-            'Syllabus has been found and the data is stored in an object'
-        );
+        course.log('Syllabus', {
+            'Message': 'Syllabus has been found and the data is stored in an object'
+        });
         findSyllabusCallback(null, sI);
     }
 
@@ -139,10 +134,17 @@ module.exports = (course, stepCallback) => {
                     html += d.toString('utf8');
                 });
                 res.on('end', function () {
+                    // this is a temporary thing
+                    // making a simulation of a syllabus template 
+                    var template = '<div id = "template"> -- THIS WILL BE A TEMPLATE -- </div>\n';
+                    var index = html.search('div') - 1;
+                    var substring1 = html.substring(0, index);
+                    var substring2 = html.substring(index, html.length);
+                    html = substring1 + template + substring2;
                     getHTMLcallback(html);
                 });
             }).on('error', (err) => {
-                course.throwErr('set-syllabus', err);
+                course.error(err);
                 putSyllabusCallback(err);
             });
         }
@@ -153,14 +155,13 @@ module.exports = (course, stepCallback) => {
                     'course[syllabus_body]': html
                 }, function (err) {
                     if (err) {
-                        course.throwErr('set-syllabus', err);
+                        course.error(err);
                         putSyllabusCallback(err);
                         return;
                     }
-                    course.success(
-                        'set-syllabus',
-                        'Successfully set the Syllabus content in the Syllabus tool'
-                    );
+                    course.log('Syllabus', {
+                        'Message': 'Syllabus has been set'
+                    });
                     putSyllabusCallback(null, sI);
                 });
             });
@@ -173,7 +174,7 @@ module.exports = (course, stepCallback) => {
             // for the value of the "body":"...." from the object_url
             canvas.get(object_url, function (err, array) {
                 if (err) {
-                    course.throwErr('set-syllabus', err);
+                    course.error(err);
                     putSyllabusCallback(err);
                     return;
                 }
@@ -194,21 +195,20 @@ module.exports = (course, stepCallback) => {
                     'course[syllabus_body]': html
                 }, function (err) {
                     if (err) {
-                        course.throwErr('set-syllabus', err);
+                        course.error(err);
                         putSyllabusCallback(err);
                         return;
                     }
-                    course.success(
-                        'set-syllabus',
-                        'Successfully set the Syllabus content in the Syllabus tool'
-                    );
+                    course.log('Syllabus', {
+                        'Message': 'Syllabus has been set'
+                    });
                     putSyllabusCallback(null, sI);
                 });
             });
         }
         // c) - this will handle the case when there is no syllabus
         function c() {
-            course.throwErr('set-syllabus', 'syllabus not found');
+            course.warning('syllabus not found');
             putSyllabusCallback(null, 'syllabus not found');
         }
 
@@ -230,14 +230,13 @@ module.exports = (course, stepCallback) => {
             var itemToDelete = `/api/v1/courses/${sI.courseId}/modules/${sI.moduleId}/items/${sI.syllabusId}`;
             canvas.delete(itemToDelete, function (err) {
                 if (err) {
-                    course.throwErr('set-syllabus', err);
+                    course.error(err);
                     deleteSyllabusItemCallback(err);
                     return;
                 }
-                course.success(
-                    'set-syllabus',
-                    'Syllabus has been deleted from the modules'
-                );
+                course.log('Syllabus', {
+                    'Message': 'Old syllabus has been deleted from the modules'
+                });
                 deleteSyllabusItemCallback(null, 'done');
             });
         }
