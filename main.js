@@ -41,9 +41,7 @@ module.exports = (course, stepCallback) => {
                 getModuleItemsCallback(err);
                 return;
             }
-            course.log('Syllabus', {
-                'Message': `Retrieved the items for the ${module.name} module (id: ${module.id})`
-            });
+            course.message(`Retrieved the items for the ${module.name} module (id: ${module.id})`);
             getModuleItemsCallback(null, moduleItems);
         });
     }
@@ -56,9 +54,7 @@ module.exports = (course, stepCallback) => {
                 getItemsCallback(err);
                 return;
             }
-            course.log('Syllabus', {
-                'Message': `Retrieved all items for all modules for the "${courseName}" course (canvasOU: ${course.info.canvasOU})`
-            });
+            course.message(`Retrieved all items for all modules for the "${courseName}" course (canvasOU: ${course.info.canvasOU})`);
             getItemsCallback(null, allItems);
         });
     }
@@ -100,9 +96,7 @@ module.exports = (course, stepCallback) => {
                 }
             });
         });
-        course.log('Syllabus', {
-            'Message': 'Syllabus has been found and the data is stored in an object'
-        });
+        course.message('Syllabus has been found and the data is stored in an object');
         findSyllabusCallback(null, sI);
     }
 
@@ -118,13 +112,33 @@ module.exports = (course, stepCallback) => {
                     html += d.toString('utf8');
                 });
                 res.on('end', function () {
-                    // this is a temporary thing
-                    // making a simulation of a syllabus template 
-                    var template = '<div id = "template"> -- THIS WILL BE A TEMPLATE -- </div>\n';
-                    var index = html.search('div') - 1;
-                    var substring1 = html.substring(0, index);
-                    var substring2 = html.substring(index, html.length);
-                    html = substring1 + template + substring2;
+                    // before the html string is passed for the further processing
+                    // I need to do three things on it
+                    // #1 -- get rig of the <title> as it is displayed in the <body> somehow
+                    var regex = /<title>[\s\S]*<\/title>/;
+                    if (regex.test(html)) {
+                        html = html.replace(regex, '');
+                    }
+                    // #2 -- get rid of smallbanner.jpg and largeBanner.jpg if found in the syllabus
+                    regex = /<img[\s\S]*smallBanner.jpg[\s\S]*\/>/;
+                    if (regex.test(html)) {
+                        html = html.replace(regex, '');
+                    }
+                    regex = /<img[\s\S]*largeBanner.jpg[\s\S]*\/>/;
+                    if (regex.test(html)) {
+                        html = html.replace(regex, '');
+                    }
+                    // #3 -- add the syllabus template
+                    // this is just making a place for 
+                    // the syllabus template
+                    var index = html.search('<div id="main">');
+                    var str1 = html.slice(0, index);
+                    var str2 = html.slice(index, html.length);
+                    html = str1 +
+                        '<div id="syllabus_template"> -- THE SYLLABUS TEMPLATE WILL BE HERE -- </div>' +
+                        str2;
+
+                    // now pass it for the further processing
                     getHTMLcallback(html);
                 });
             }).on('error', (err) => {
@@ -143,9 +157,7 @@ module.exports = (course, stepCallback) => {
                         putSyllabusCallback(err);
                         return;
                     }
-                    course.log('Syllabus', {
-                        'Message': 'Syllabus has been set'
-                    });
+                    course.message('Syllabus has been set in the course');
                     putSyllabusCallback(null, sI);
                 });
             });
@@ -183,9 +195,7 @@ module.exports = (course, stepCallback) => {
                         putSyllabusCallback(err);
                         return;
                     }
-                    course.log('Syllabus', {
-                        'Message': 'Successfully set the Syllabus content in the Syllabus tool'
-                    });
+                    course.message('Syllabus has been set in the course');
                     putSyllabusCallback(null, sI);
                 });
             });
@@ -218,9 +228,7 @@ module.exports = (course, stepCallback) => {
                     deleteSyllabusItemCallback(err);
                     return;
                 }
-                course.log('Syllabus', {
-                    'Message': 'Syllabus has been deleted from the modules'
-                });
+                course.message('Syllabus has been deleted from the modules');
             });
         }
     }
