@@ -112,6 +112,33 @@ module.exports = (course, stepCallback) => {
                     html += d.toString('utf8');
                 });
                 res.on('end', function () {
+                    // before the html string is passed for the further processing
+                    // I need to do three things on it
+                    // #1 -- get rig of the <title> as it is displayed in the <body> somehow
+                    var regex = /<title>[\s\S]*<\/title>/;
+                    if (regex.test(html)){
+                        html = html.replace(regex, '');
+                    }
+                    // #2 -- get rid of smallbanner.jpg and largeBanner.jpg if found in the syllabus
+                    regex = /<img[\s\S]*smallBanner.jpg[\s\S]*\/>/;
+                    if (regex.test(html)){
+                        html = html.replace(regex, '');
+                    }
+                    regex = /<img[\s\S]*largeBanner.jpg[\s\S]*\/>/;
+                    if (regex.test(html)){
+                        html = html.replace(regex, '');
+                    }
+                    // #3 -- add the syllabus template
+                    // this is just making a place for 
+                    // the syllabus template
+                    var index = html.search('<div id="main">');
+                    var str1 = html.slice(0, index);
+                    var str2 = html.slice(index, html.length);
+                    html = str1 +
+                        '<div id="syllabus_template"> -- THE SYLLABUS TEMPLATE WILL BE HERE -- </div>' +
+                        str2;
+                    
+                    // now pass it for the further processing
                     getHTMLcallback(html);
                 });
             }).on('error', (err) => {
@@ -130,7 +157,7 @@ module.exports = (course, stepCallback) => {
                         putSyllabusCallback(err);
                         return;
                     }
-                    course.message('Successfully set the Syllabus content in the Syllabus tool');
+                    course.message('Syllabus has been deleted from the modules');
                     putSyllabusCallback(null, sI);
                 });
             });
@@ -168,7 +195,7 @@ module.exports = (course, stepCallback) => {
                         putSyllabusCallback(err);
                         return;
                     }
-                    course.message('Successfully set the Syllabus content in the Syllabus tool');
+                    course.message('Syllabus has been deleted from the modules');
                     putSyllabusCallback(null, sI);
                 });
             });
@@ -214,7 +241,7 @@ module.exports = (course, stepCallback) => {
         putSyllabus,
         deleteSyllabusItem
     ],
-    function () {
-        stepCallback(null, course);
-    });
+        function () {
+            stepCallback(null, course);
+        });
 };
