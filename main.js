@@ -1,4 +1,6 @@
 /*eslint-env node, es6*/
+/*eslint no-unused-vars:1*/
+/*eslint no-console:0, semi: 2*/
 
 /* If the courser syllabus is among modules, the step finds it 
    and rellocates it into the Sullabus folder of the course
@@ -137,7 +139,6 @@ module.exports = (course, stepCallback) => {
                     html = str1 +
                         '<div id="syllabus_template"> -- THE SYLLABUS TEMPLATE WILL BE HERE -- </div>' +
                         str2;
-
                     // now pass it for the further processing
                     getHTMLcallback(html);
                 });
