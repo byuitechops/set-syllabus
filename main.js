@@ -162,7 +162,6 @@ module.exports = (course, stepCallback) => {
                     putSyllabusCallback(null, sI);
                 });
             });
-
         }
         // b) - this else if will handle the case when the syllabus is implemented as the internal html page
         function b() {
@@ -230,6 +229,7 @@ module.exports = (course, stepCallback) => {
                     return;
                 }
                 course.message('Syllabus has been deleted from the modules');
+                deleteSyllabusItemCallback(null);
             });
         }
     }
