@@ -130,7 +130,7 @@ module.exports = (course, stepCallback) => {
                     if (regex.test(html)) {
                         html = html.replace(regex, '');
                     }
-                    // #3 -- add the syllabus template
+                    // #3 -- add the syllabus template and the "Old Syllabus" red note
                     // this is just making a place for 
                     // the syllabus template
                     var index = html.search('<div id="main">');
@@ -138,6 +138,7 @@ module.exports = (course, stepCallback) => {
                     var str2 = html.slice(index, html.length);
                     html = str1 +
                         '<div id="syllabus_template"> -- THE SYLLABUS TEMPLATE WILL BE HERE -- </div>' +
+                        '<h2 style="color:red;font-size: 24px;"><strong>Old Syllabus</strong></h2>' +
                         str2;
                     // now pass it for the further processing
                     getHTMLcallback(html);
