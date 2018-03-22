@@ -1,4 +1,6 @@
 /*eslint-env node, es6*/
+/*eslint no-unused-vars:1*/
+/*eslint no-console:0, semi: 2*/
 
 /* If the courser syllabus is among modules, the step finds it 
    and rellocates it into the Sullabus folder of the course
@@ -128,7 +130,7 @@ module.exports = (course, stepCallback) => {
                     if (regex.test(html)) {
                         html = html.replace(regex, '');
                     }
-                    // #3 -- add the syllabus template
+                    // #3 -- add the syllabus template and the "Old Syllabus" red note
                     // this is just making a place for 
                     // the syllabus template
                     var index = html.search('<div id="main">');
@@ -136,8 +138,8 @@ module.exports = (course, stepCallback) => {
                     var str2 = html.slice(index, html.length);
                     html = str1 +
                         '<div id="syllabus_template"> -- THE SYLLABUS TEMPLATE WILL BE HERE -- </div>' +
+                        '<h2 style="color:red;font-size: 24px;"><strong>Old Syllabus</strong></h2>' +
                         str2;
-
                     // now pass it for the further processing
                     getHTMLcallback(html);
                 });
@@ -161,7 +163,6 @@ module.exports = (course, stepCallback) => {
                     putSyllabusCallback(null, sI);
                 });
             });
-
         }
         // b) - this else if will handle the case when the syllabus is implemented as the internal html page
         function b() {
@@ -229,6 +230,7 @@ module.exports = (course, stepCallback) => {
                     return;
                 }
                 course.message('Syllabus has been deleted from the modules');
+                deleteSyllabusItemCallback(null);
             });
         }
     }
