@@ -20,7 +20,7 @@
         "url": "git+https://github.com/byuitechops/set-syllabus.git"
     },
     "author": "Zachary Williams, Daniel Green",
-    "license": "ISC",
+    "license": "MIT",
     "bugs": {
         "url": "https://github.com/byuitechops/set-syllabus/issues"
     },
