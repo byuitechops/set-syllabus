@@ -107,7 +107,7 @@ module.exports = (course, stepCallback) => {
         // a_a) - this function will get the content that will be used in a()
         function getHTML(getHTMLcallback) {
             // this gets the html for using it in a() to put the syllabus
-            https.get(`${sI.syllabusUrl}`, (res) => {
+            https.get(sI.syllabusUrl, (res) => {
                 var html = '';
                 res.on('data', function (d) {
                     html += d.toString('utf8');
@@ -239,13 +239,6 @@ module.exports = (course, stepCallback) => {
     /***************
      * START HERE
      **************/
-    var validPlatforms = ['online', 'pathway'];
-    if (!validPlatforms.includes(course.settings.platform)) {
-        course.message('Invalid Platform. Skipping child module');
-        stepCallback(null, course);
-        return;
-    }
-    
     var courseName = course.info.fileName.split('.zip')[0];
      
     asyncLib.waterfall([
