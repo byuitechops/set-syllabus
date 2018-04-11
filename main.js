@@ -229,6 +229,7 @@ module.exports = (course, stepCallback) => {
                     return;
                 }
                 course.message('Syllabus has been deleted from the modules');
+                course.log('The syllabus has been set', {});
                 deleteSyllabusItemCallback(null);
             });
         }
