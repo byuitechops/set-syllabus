@@ -3,7 +3,7 @@
 /*eslint no-console:0, semi: 2*/
 
 /* If the courser syllabus is among modules, the step finds it 
-   and rellocates it into the Sullabus folder of the course
+   and rellocates it into the Syllabus folder of the course
    (it handles both, the url and the html cases for the syllabus */
 
 /* Put dependencies here */
@@ -13,7 +13,6 @@ const canvas = require('canvas-wrapper'),
 
 module.exports = (course, stepCallback) => {
 
-    var courseName = course.info.fileName.split('.zip')[0];
     // #1 -- get modules
     function getModules(getModulesCallback) {
         canvas.get(`/api/v1/courses/${course.info.canvasOU}/modules`, function (err, modules) {
@@ -208,9 +207,9 @@ module.exports = (course, stepCallback) => {
         }
 
         // CALL the steps of the conditional sequence
-        if ((sI.courseId !== '') && (sI.syllabusUrl !== undefined)) {
+        if (sI.courseId !== '' && sI.syllabusUrl !== undefined) {
             a();
-        } else if ((sI.courseId !== '') && (sI.type === 'Page')) {
+        } else if (sI.courseId !== '' && sI.type === 'Page') {
             b();
         } else {
             c();
@@ -235,6 +234,19 @@ module.exports = (course, stepCallback) => {
         }
     }
 
+
+    /***************
+     * START HERE
+     **************/
+    var validPlatforms = ['online', 'pathway'];
+    if (!validPlatforms.includes(course.settings.platform)) {
+        course.message('Invalid Platform. Skipping child module');
+        stepCallback(null, course);
+        return;
+    }
+    
+    var courseName = course.info.fileName.split('.zip')[0];
+     
     asyncLib.waterfall([
         getModules,
         getAllItems,
@@ -242,7 +254,7 @@ module.exports = (course, stepCallback) => {
         putSyllabus,
         deleteSyllabusItem
     ],
-        function () {
-            stepCallback(null, course);
-        });
+    function () {
+        stepCallback(null, course);
+    });
 };
