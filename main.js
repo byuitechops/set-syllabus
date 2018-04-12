@@ -3,7 +3,7 @@
 /*eslint no-console:0, semi: 2*/
 
 /* If the courser syllabus is among modules, the step finds it 
-   and rellocates it into the Sullabus folder of the course
+   and rellocates it into the Syllabus folder of the course
    (it handles both, the url and the html cases for the syllabus */
 
 /* Put dependencies here */
@@ -13,7 +13,6 @@ const canvas = require('canvas-wrapper'),
 
 module.exports = (course, stepCallback) => {
 
-    var courseName = course.info.fileName.split('.zip')[0];
     // #1 -- get modules
     function getModules(getModulesCallback) {
         canvas.get(`/api/v1/courses/${course.info.canvasOU}/modules`, function (err, modules) {
@@ -108,7 +107,7 @@ module.exports = (course, stepCallback) => {
         // a_a) - this function will get the content that will be used in a()
         function getHTML(getHTMLcallback) {
             // this gets the html for using it in a() to put the syllabus
-            https.get(`${sI.syllabusUrl}`, (res) => {
+            https.get(sI.syllabusUrl, (res) => {
                 var html = '';
                 res.on('data', function (d) {
                     html += d.toString('utf8');
@@ -149,7 +148,7 @@ module.exports = (course, stepCallback) => {
             });
         }
         // a) - this handels the case when the syllabus is implemented as the external html page
-        function a() {
+        function externalHtmlSyllabus() {
             getHTML(function (html) {
                 canvas.put(`/api/v1/courses/${sI.courseId}`, {
                     'course[syllabus_body]': html
@@ -165,7 +164,7 @@ module.exports = (course, stepCallback) => {
             });
         }
         // b) - this else if will handle the case when the syllabus is implemented as the internal html page
-        function b() {
+        function internalHtmlSyllabus() {
             var object_url = sI.url;
             // to do this part use canvas.get and nest in it canvas.put 
             // for the value of the "body":"...." from the object_url
@@ -202,24 +201,27 @@ module.exports = (course, stepCallback) => {
             });
         }
         // c) - this will handle the case when there is no syllabus
-        function c() {
+        function noSyllabus() {
             course.warning('syllabus not found');
             putSyllabusCallback(null, 'Syllabus not found');
         }
 
         // CALL the steps of the conditional sequence
-        if ((sI.courseId !== '') && (sI.syllabusUrl !== undefined)) {
-            a();
-        } else if ((sI.courseId !== '') && (sI.type === 'Page')) {
-            b();
+        if (sI.courseId !== '' && sI.syllabusUrl !== undefined) {
+            externalHtmlSyllabus();
+        } else if (sI.courseId !== '' && sI.type === 'Page') {
+            internalHtmlSyllabus();
         } else {
-            c();
+            noSyllabus();
         }
     }
 
     // #5 -- delete the old syllabus item from modules
     function deleteSyllabusItem(sI, deleteSyllabusItemCallback) {
-        if (sI === 'syllabus not found') {
+        if (sI === 'syllabus not found' || sI === undefined) {
+            course.log('Syllabus', {
+                'status': 'Not found'
+            });
             deleteSyllabusItemCallback(null, 'syllabus not found');
         } else {
             var itemToDelete = `/api/v1/courses/${sI.courseId}/modules/${sI.moduleId}/items/${sI.syllabusId}`;
@@ -230,20 +232,31 @@ module.exports = (course, stepCallback) => {
                     return;
                 }
                 course.message('Syllabus has been deleted from the modules');
-                course.log('The syllabus has been set', {});
+                course.log('Syllabus', {
+                    'status': 'Set Correctly'
+                });
                 deleteSyllabusItemCallback(null);
             });
         }
     }
 
-    asyncLib.waterfall([
-        getModules,
-        getAllItems,
-        findSyllabus,
-        putSyllabus,
-        deleteSyllabusItem
-    ],
-        function () {
-            stepCallback(null, course);
-        });
+
+    /***************
+     * START HERE
+     **************/
+    var courseName = course.info.fileName.split('.zip')[0],
+        steps = [
+            getModules,
+            getAllItems,
+            findSyllabus,
+            putSyllabus,
+            deleteSyllabusItem
+        ];
+
+    asyncLib.waterfall(steps, err => {
+        if (err) {
+            course.error(err);
+        }
+        stepCallback(null, course);
+    });
 };
