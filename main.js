@@ -1,5 +1,5 @@
 const canvas = require('canvas-wrapper');
-const https = require('https');
+const request = require('request');
 
 module.exports = (course, stepCallback) => {
 
@@ -24,23 +24,14 @@ module.exports = (course, stepCallback) => {
     /* If it was an external syllabus (i.e. equella), retrieve it */
     function getExternalSyllabus(url) {
         return new Promise((resolve, reject) => {
-            https.get(url, (res) => {
-                var html = '';
-                res.on('data', function (d) {
-                    html += d.toString('utf8');
-                });
-                res.on('end', function () {
-                    var index = html.search('<div id="main">');
-                    var str1 = html.slice(0, index);
-                    var str2 = html.slice(index, html.length);
-                    var syllabusTemplate = `
-                        <div id="syllabus_template"> -- THE SYLLABUS TEMPLATE WILL BE HERE -- </div>
-                        <h2 style="color:red;font-size: 24px;"><strong>Old Syllabus</strong></h2>
-                    `;
-                    html = str1 + syllabusTemplate + str2;
-                    resolve(html);
-                });
-            }).on('error', reject);
+            request.get(url, (error, response, body) => {
+                if (error) return reject(err);
+                var syllabusTemplate = `
+                    <div id="syllabus_template"> -- THE SYLLABUS TEMPLATE WILL BE HERE -- </div>
+                    <h2 style="color:red;font-size: 24px;"><strong>Old Syllabus</strong></h2>
+                `;
+                resolve(syllabusTemplate + body);
+            });
         });
     }
 

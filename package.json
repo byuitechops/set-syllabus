@@ -1,29 +1,30 @@
 {
-    "name": "set-syllabus",
-    "version": "1.0.0",
-    "description": "If the syllabus is in any module except of Syllabus, this step moves it to Syllabus",
-    "main": "main.js",
-    "dependencies": {
-        "canvas-wrapper": "github:byuitechops/canvas-wrapper"
-    },
-    "devDependencies": {
-        "async": "^2.6.0",
-        "child-development-kit": "github:byuitechops/child-development-kit",
-        "tap": "^10.7.3"
-    },
-    "scripts": {
-        "start": "node ./node_modules/child-development-kit/runChild.js",
-        "test": "tap ./node_modules/child-development-kit/runChild.js -T"
-    },
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/byuitechops/set-syllabus.git"
-    },
-    "author": "Zachary Williams, Daniel Green",
-    "license": "MIT",
-    "bugs": {
-        "url": "https://github.com/byuitechops/set-syllabus/issues"
-    },
-    "homepage": "https://github.com/byuitechops/set-syllabus#readme",
-    "childType": "postImport"
+  "name": "set-syllabus",
+  "version": "1.0.0",
+  "description": "If the syllabus is in any module except of Syllabus, this step moves it to Syllabus",
+  "main": "main.js",
+  "dependencies": {
+    "canvas-wrapper": "github:byuitechops/canvas-wrapper",
+    "request": "^2.85.0"
+  },
+  "devDependencies": {
+    "async": "^2.6.0",
+    "child-development-kit": "github:byuitechops/child-development-kit",
+    "tap": "^10.7.3"
+  },
+  "scripts": {
+    "start": "node ./node_modules/child-development-kit/runChild.js",
+    "test": "tap ./node_modules/child-development-kit/runChild.js -T"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/byuitechops/set-syllabus.git"
+  },
+  "author": "Zachary Williams, Daniel Green",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/byuitechops/set-syllabus/issues"
+  },
+  "homepage": "https://github.com/byuitechops/set-syllabus#readme",
+  "childType": "postImport"
 }
