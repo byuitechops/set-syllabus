@@ -1,5 +1,12 @@
 const canvas = require('canvas-wrapper');
 const request = require('request');
+const cheerio = require('cheerio');
+
+var elementsToKill = [
+    'main',
+    'header',
+    'article'
+];
 
 module.exports = (course, stepCallback) => {
 
@@ -65,6 +72,34 @@ module.exports = (course, stepCallback) => {
         });
     }
 
+    /* Removes dirty HTML, adds styling classes */
+
+    function scrubHtml(syllabusHTML) {
+        var $ = cheerio.load(syllabusHTML);
+        // Remove id's of main, header, article
+        elementsToKill.forEach(tag => {
+            if ($(`#${tag}`)) {
+                $(`#${tag}`).replaceWith($(`#${tag}`).contents());
+            }
+        });
+        // Replace i tags, b tags, with em tags, strong tags
+        if ($('i')) {
+            $('i').each((index, el) => {
+                $(el).replaceWith(`<em>${$(el).contents()}</em>`);
+            });
+        }
+        if ($('b')) {
+            $('b').each((index, el) => {
+                $(el).replaceWith(`<strong>${$(el).contents()}</strong>`);
+            });
+        }
+        // Remove empty tags
+        $(':empty').remove();
+
+        let courseCode = course.info.courseCode.replace(/\s/g, '').split(':')[0].toLowerCase();
+        return `<div class="byui ${courseCode}">${$.html()}</div>`;
+    }
+
     /* Updates the syllabus in the canvas course */
     function setSyllabus(syllabusHTML) {
         return new Promise((resolve, reject) => {
@@ -86,6 +121,7 @@ module.exports = (course, stepCallback) => {
             return moduleItemArr.reduce((acc, moduleItemArr) => [...acc, ...moduleItemArr]);
         })
         .then(getSyllabusTemplate)
+        .then(scrubHtml)
         .then(setSyllabus)
         .then(() => {
             course.log('Syllabus', {
