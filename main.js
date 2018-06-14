@@ -68,7 +68,7 @@ module.exports = (course, stepCallback) => {
                     .catch(reject);
             } else {
                 course.warning(`Syllabus module item's type was not one we account for: ${syllabusModuleItem.type}`);
-                resolve();
+                resolve(null);
             }
         });
     }
@@ -76,6 +76,9 @@ module.exports = (course, stepCallback) => {
     /* Removes dirty HTML, adds styling classes */
 
     function scrubHtml(syllabusHTML) {
+        if (syllabusHTML === null) {
+            return null;
+        }
         var $ = cheerio.load(syllabusHTML);
         // Remove id's of main, header, article
         elementsToKill.forEach(tag => {
@@ -104,6 +107,9 @@ module.exports = (course, stepCallback) => {
     /* Updates the syllabus in the canvas course */
     function setSyllabus(syllabusHTML) {
         return new Promise((resolve, reject) => {
+            if (syllabusHTML === null) {
+                resolve(null);
+            }
             canvas.put(`/api/v1/courses/${course.info.canvasOU}`, {
                 'course[syllabus_body]': syllabusHTML
             }, (err) => {
@@ -124,10 +130,12 @@ module.exports = (course, stepCallback) => {
         .then(getSyllabusTemplate)
         .then(scrubHtml)
         .then(setSyllabus)
-        .then(() => {
-            course.log('Syllabus', {
-                'Success': 'Syllabus successfully set in the course syllabus page'
-            });
+        .then((state) => {
+            if (state !== null) {
+                course.log('Syllabus', {
+                    'Success': 'Syllabus successfully set in the course syllabus page'
+                });
+            }
             stepCallback(null, course);
         })
         .catch(err => {
