@@ -68,6 +68,7 @@ module.exports = (course, stepCallback) => {
                     .catch(reject);
             } else {
                 course.warning(`Syllabus module item's type was not one we account for: ${syllabusModuleItem.type}`);
+                resolve();
             }
         });
     }
