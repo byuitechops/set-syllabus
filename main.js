@@ -16,7 +16,7 @@ module.exports = (course, stepCallback) => {
                 if (err) return reject(err);
                 resolve(modules);
             });
-        })
+        });
     }
 
     function getModuleItems(module) {
@@ -49,14 +49,17 @@ module.exports = (course, stepCallback) => {
                 if (err) return reject(err);
                 resolve(page[0].body);
             });
-        })
+        });
     }
 
     /* Retrieves the syllabus HTML */
     function getSyllabusTemplate(moduleItems) {
         return new Promise((resolve, reject) => {
             var syllabusModuleItem = moduleItems.find(moduleItem => /syllabus(?!\s*quiz|\s*discussion|\s*assignment|\s*activity)+/i.test(moduleItem.title));
-            if (syllabusModuleItem.type === 'ExternalUrl') {
+            if (syllabusModuleItem === undefined) {
+                course.warning('Course Syllabus could not be found');
+                resolve(null);
+            } else if (syllabusModuleItem.type === 'ExternalUrl') {
                 course.message('Syllabus identified as an external syllabus (i.e. equella) - retrieving.');
                 getExternalSyllabus(syllabusModuleItem.external_url)
                     .then(resolve)
@@ -115,7 +118,7 @@ module.exports = (course, stepCallback) => {
             }, (err) => {
                 if (err) return reject(err);
                 resolve();
-            })
+            });
         });
     }
 
