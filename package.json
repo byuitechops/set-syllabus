@@ -5,7 +5,7 @@
   "main": "main.js",
   "dependencies": {
     "canvas-wrapper": "github:byuitechops/canvas-wrapper",
-    "request": "^2.85.0"
+    "request": "^2.88.0"
   },
   "devDependencies": {
     "async": "^2.6.0",
